@@ -225,23 +225,24 @@
         </button>
     </div>
 
-    <!-- MODAL DI INSERIMENTO / MODIFICA -->
-    <div id="actionModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-soccer-card border border-soccer-border/90 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
+    <!-- MODAL DI INSERIMENTO / MODIFICA OTTIMIZZATO MOBILE -->
+    <div id="actionModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-soccer-card border border-soccer-border/90 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-3.5 relative my-auto">
             <div class="flex justify-between items-center border-b border-soccer-border pb-3">
                 <h3 id="modalTitle" class="font-bold text-base text-white">Nuovo Elemento</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1.5 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             
             <div id="validationError" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 text-xs p-3 rounded-xl flex items-center space-x-2">
-                <i class="fa-solid fa-circle-exclamation"></i>
+                <i class="fa-solid fa-circle-exclamation flex-shrink-0"></i>
                 <span id="validationErrorMsg">Compila tutti i campi obbligatori per proseguire.</span>
             </div>
 
-            <div id="modalBody" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1 no-scrollbar"></div>
-            <div class="flex justify-end space-x-2 pt-3 border-t border-soccer-border">
-                <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-soccer-input border border-soccer-border text-slate-300 text-sm hover:bg-slate-800 transition">Annulla</button>
-                <button onclick="saveModalData()" id="saveModalBtn" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-sm font-bold hover:bg-brand-500 transition shadow-lg shadow-brand-600/20 flex items-center">
+            <div id="modalBody" class="space-y-3.5 max-h-[72vh] overflow-y-auto pr-1 no-scrollbar"></div>
+            
+            <div class="flex justify-end space-x-2.5 pt-3 border-t border-soccer-border">
+                <button onclick="closeModal()" class="px-4 py-2.5 rounded-xl bg-soccer-input border border-soccer-border text-slate-300 text-sm hover:bg-slate-800 transition">Annulla</button>
+                <button onclick="saveModalData()" id="saveModalBtn" class="px-5 py-2.5 rounded-xl bg-brand-600 text-white text-sm font-bold hover:bg-brand-500 transition shadow-lg shadow-brand-600/20 flex items-center">
                     <span id="saveBtnText">Salva</span>
                 </button>
             </div>
@@ -877,26 +878,26 @@
                 body.innerHTML = `
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Oggetto <span class="text-red-400">*</span></label>
-                        <input type="text" id="f_oggetto" value="${data.Oggetto || ''}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                        <input type="text" id="f_oggetto" value="${data.Oggetto || ''}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Descrizione <span class="text-red-400">*</span></label>
-                        <textarea id="f_descrizione" rows="2" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">${data.Descrizione || ''}</textarea>
+                        <textarea id="f_descrizione" rows="2.5" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">${data.Descrizione || ''}</textarea>
                     </div>
-                    <div class="grid grid-cols-2 gap-2.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Data Scadenza <span class="text-red-400">*</span></label>
-                            <input type="date" id="f_datascadenza" value="${toInputDate(data['Data Scadenza'])}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <input type="date" id="f_datascadenza" value="${toInputDate(data['Data Scadenza'])}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Data e Ora Avviso <span class="text-red-400">*</span></label>
-                            <input type="datetime-local" id="f_dataoraavviso" value="${toInputDatetime(data['Data e Ora Avviso'])}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <input type="datetime-local" id="f_dataoraavviso" value="${toInputDatetime(data['Data e Ora Avviso'])}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                         </div>
                     </div>
-                    <div class="grid grid-cols-3 gap-2.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Esito <span class="text-red-400">*</span></label>
-                            <select id="f_esito" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-2 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <select id="f_esito" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-2.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                                 <option value="APERTO" ${!data.Esito || data.Esito === 'APERTO' ? 'selected' : ''}>APERTO</option>
                                 <option value="CHIUSO" ${data.Esito === 'CHIUSO' ? 'selected' : ''}>CHIUSO</option>
                                 <option value="RIPROGRAMMATO" ${data.Esito && data.Esito.toUpperCase().startsWith('RIPROGRAMMATO') ? 'selected' : ''}>RIPROGRAMMATO</option>
@@ -905,7 +906,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Frequenza</label>
-                            <select id="f_frequenza" class="w-full bg-soccer-input border border-soccer-border rounded-xl px-2 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <select id="f_frequenza" class="w-full bg-soccer-input border border-soccer-border rounded-xl px-2.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                                 <option value="" ${!freqVal || freqVal === 'NESSUNA' ? 'selected' : ''}></option>
                                 <option value="GIORNALIERA" ${freqVal === 'GIORNALIERA' ? 'selected' : ''}>GIORNALIERA</option>
                                 <option value="SETTIMANALE" ${freqVal === 'SETTIMANALE' ? 'selected' : ''}>SETTIMANALE</option>
@@ -914,7 +915,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Ora Frequenza</label>
-                            <input type="time" id="f_orafrequenza" value="${toInputTime(data['Ora frequenza'])}" class="w-full bg-soccer-input border border-soccer-border rounded-xl px-2 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <input type="time" id="f_orafrequenza" value="${toInputTime(data['Ora frequenza'])}" class="w-full bg-soccer-input border border-soccer-border rounded-xl px-2.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                         </div>
                     </div>
                 `;
@@ -922,43 +923,43 @@
                 body.innerHTML = `
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Nome e cognome <span class="text-red-400">*</span></label>
-                        <input type="text" id="u_nome" value="${data['Nome e cognome'] || ''}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                        <input type="text" id="u_nome" value="${data['Nome e cognome'] || ''}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                     </div>
-                    <div class="grid grid-cols-2 gap-2.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Ruolo <span class="text-red-400">*</span></label>
-                            <input type="text" id="u_ruolo" value="${data.Ruolo || ''}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <input type="text" id="u_ruolo" value="${data.Ruolo || ''}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Email <span class="text-red-400">*</span></label>
-                            <input type="email" id="u_email" value="${data.Email || ''}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <input type="email" id="u_email" value="${data.Email || ''}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2.5 pt-1">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Riceve Promemoria <span class="text-red-400">*</span></label>
-                            <select id="u_ric_prom" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-2 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <select id="u_ric_prom" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                                 <option value="S&igrave;" ${data['Riceve Promemoria'] === 'Sì' ? 'selected' : ''}>S&igrave;</option>
                                 <option value="No" ${data['Riceve Promemoria'] === 'No' ? 'selected' : ''}>No</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Interagisce Promemoria <span class="text-red-400">*</span></label>
-                            <select id="u_int_prom" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-2 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <select id="u_int_prom" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                                 <option value="S&igrave;" ${data['Interagisce Promemoria'] === 'Sì' ? 'selected' : ''}>S&igrave;</option>
                                 <option value="No" ${data['Interagisce Promemoria'] === 'No' ? 'selected' : ''}>No</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Riceve Social <span class="text-red-400">*</span></label>
-                            <select id="u_ric_soc" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-2 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <select id="u_ric_soc" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                                 <option value="S&igrave;" ${data['Riceve Social'] === 'Sì' ? 'selected' : ''}>S&igrave;</option>
                                 <option value="No" ${data['Riceve Social'] === 'No' ? 'selected' : ''}>No</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Interagisce Social <span class="text-red-400">*</span></label>
-                            <select id="u_int_soc" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-2 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <select id="u_int_soc" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                                 <option value="S&igrave;" ${data['Interagisce Social'] === 'Sì' ? 'selected' : ''}>S&igrave;</option>
                                 <option value="No" ${data['Interagisce Social'] === 'No' ? 'selected' : ''}>No</option>
                             </select>
@@ -971,12 +972,12 @@
                 body.innerHTML = `
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Contenuto</label>
-                        <input type="text" id="p_contenuto" value="${data.Contenuto || ''}" disabled class="form-input w-full bg-slate-950/80 border border-soccer-border/80 rounded-xl px-3.5 py-2 text-sm text-slate-400 cursor-not-allowed font-medium">
+                        <input type="text" id="p_contenuto" value="${data.Contenuto || ''}" disabled class="form-input w-full bg-slate-950/80 border border-soccer-border/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-400 cursor-not-allowed font-medium">
                     </div>
-                    <div class="grid grid-cols-2 gap-2.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Giorno di Avviso <span class="text-red-400">*</span></label>
-                            <select id="p_giorno" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <select id="p_giorno" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                                 <option value="LUN" ${giornoVal === 'LUN' || giornoVal.includes('LUN') ? 'selected' : ''}>LUNED&Igrave;</option>
                                 <option value="MAR" ${giornoVal === 'MAR' || giornoVal.includes('MAR') ? 'selected' : ''}>MARTED&Igrave;</option>
                                 <option value="MER" ${giornoVal === 'MER' || giornoVal.includes('MER') ? 'selected' : ''}>MERCOLED&Igrave;</option>
@@ -988,7 +989,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Orario di Avviso <span class="text-red-400">*</span></label>
-                            <input type="time" id="p_orario" value="${orarioVal}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <input type="time" id="p_orario" value="${orarioVal}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                         </div>
                     </div>
                 `;
@@ -1030,45 +1031,45 @@
                     const baseVal = ripInfo.isRip ? 'RIPROGRAMMATO' : cleanVal;
 
                     return `
-                        <div>
-                            <label class="block text-[10px] text-slate-400 mb-1">${f.label}</label>
-                            <select id="${f.id}" onchange="toggleRiprogrammatoDatetime('${f.id}', '${f.dtId}_box')" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-2 py-1.5 text-xs text-white focus:outline-none focus:border-brand-500">
+                        <div class="bg-slate-900/50 p-2.5 rounded-xl border border-soccer-border/50">
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">${f.label}</label>
+                            <select id="${f.id}" onchange="toggleRiprogrammatoDatetime('${f.id}', '${f.dtId}_box')" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
                                 <option value="APERTO" ${!baseVal || baseVal === 'APERTO' ? 'selected' : ''}>APERTO</option>
                                 <option value="CHIUSO" ${baseVal === 'CHIUSO' ? 'selected' : ''}>CHIUSO</option>
                                 <option value="NOTIFICATO" ${baseVal === 'NOTIFICATO' ? 'selected' : ''}>NOTIFICATO</option>
                                 <option value="RIPROGRAMMATO" ${baseVal === 'RIPROGRAMMATO' ? 'selected' : ''}>RIPROGRAMMATO</option>
                             </select>
-                            <div id="${f.dtId}_box" class="${ripInfo.isRip ? '' : 'hidden'} mt-1.5">
-                                <input type="datetime-local" id="${f.dtId}" value="${ripInfo.datetime}" class="rip-datetime-input w-full bg-amber-950/30 border border-amber-500/40 rounded-lg px-2 py-1 text-[11px] text-amber-200 focus:outline-none focus:border-amber-400">
+                            <div id="${f.dtId}_box" class="${ripInfo.isRip ? '' : 'hidden'} mt-2">
+                                <input type="datetime-local" id="${f.dtId}" value="${ripInfo.datetime}" class="rip-datetime-input w-full bg-amber-950/30 border border-amber-500/40 rounded-lg px-2.5 py-2 text-xs text-amber-200 focus:outline-none focus:border-amber-400">
                             </div>
                         </div>
                     `;
                 }).join('');
 
                 body.innerHTML = `
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-3 gap-2.5">
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Giornata</label>
-                            <input type="number" id="s_giornata" value="${data.Giornata || '1'}" disabled class="w-full bg-slate-950/80 border border-soccer-border/80 rounded-xl px-3.5 py-2 text-sm text-slate-400 cursor-not-allowed font-medium">
+                            <input type="number" id="s_giornata" value="${data.Giornata || '1'}" disabled class="w-full bg-slate-950/80 border border-soccer-border/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-400 cursor-not-allowed font-medium">
                         </div>
                         <div class="col-span-2">
                             <label class="block text-xs font-medium text-slate-400 mb-1">Gara <span class="text-red-400">*</span></label>
-                            <input type="text" id="s_gara" value="${data.Gara || ''}" placeholder="Es: Squadra casa - Squadra ospite" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <input type="text" id="s_gara" value="${data.Gara || ''}" placeholder="Es: Squadra casa - Squadra ospite" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Data Gara <span class="text-red-400">*</span></label>
-                            <input type="date" id="s_datagara" value="${toInputDate(data['Data Gara'])}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <input type="date" id="s_datagara" value="${toInputDate(data['Data Gara'])}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Ora Gara <span class="text-red-400">*</span></label>
-                            <input type="time" id="s_oragara" value="${toInputTime(data['Ora Gara'])}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <input type="time" id="s_oragara" value="${toInputTime(data['Ora Gara'])}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
                         </div>
                     </div>
-                    <div class="border-t border-soccer-border pt-2.5 mt-2">
-                        <label class="block text-xs font-bold uppercase tracking-wider text-brand-400 mb-2">Esiti Post Social</label>
-                        <div class="grid grid-cols-2 gap-2">
+                    <div class="border-t border-soccer-border pt-3 mt-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-brand-400 mb-2.5">Esiti Post Social</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             ${esitiFieldsHtml}
                         </div>
                     </div>
