@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="it" class="dark">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>GS APP - Area Direttore Sportivo</title>
+ <!-- Favicon -->
+ <link rel="icon" type="image/x-icon" href="apple-touch-icon.ico">
+ <link rel="shortcut icon" type="image/x-icon" href="apple-touch-icon.ico">
+ <link rel="apple-touch-icon" href="apple-touch-icon.png">
+ <!-- Tailwind CSS -->
+ <script src="https://cdn.tailwindcss.com"></script>
+ <script>
+ tailwind.config = {
+ darkMode: 'class',
+ theme: {
+ extend: {
+ colors: {
+ brand: { 50: '#f0fdf4', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 900: '#14532d' },
+ soccer: { dark: '#0b1329', card: '#162032', input: '#1e293b', border: '#2e3d52' }
+ }
+ }
+ }
+ }
+ </script>
+ <!-- FontAwesome -->
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <style>
+ .no-scrollbar::-webkit-scrollbar { display: none; }
+ .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+ .custom-select-arrow {
+ background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%94a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+ background-position: right 0.75rem center;
+ background-repeat: no-repeat;
+ background-size: 1.2em 1.2em;
+ }
+ </style>
+</head>
+<body class="bg-soccer-dark text-slate-100 font-sans h-screen overflow-hidden flex flex-col relative selection:bg-brand-500 selection:text-white">
+
+ <!-- OVERLAY LOGIN -->
+ <div id="loginOverlay" class="fixed inset-0 z-[200] bg-soccer-dark flex flex-col items-center justify-center p-4">
+ <div class="bg-soccer-card border border-soccer-border/90 rounded-3xl max-w-sm w-full p-8 shadow-2xl space-y-6 relative">
+ <div class="text-center space-y-3">
+ <div class="inline-flex items-center justify-center p-2 rounded-2xl bg-soccer-input border border-soccer-border shadow-lg shadow-brand-500/10 mb-1">
+ <img src="apple-touch-icon.ico" alt="GS APP - Area Direttore Sportivo" class="w-24 h-24 object-contain">
+ </div>
+ <h1 class="font-bold text-lg text-white tracking-wide">GS APP</h1>
+ <p class="text-xs text-slate-400 font-medium">Area Riservata Direttore Sportivo</p>
+ </div>
+
+ <div id="loginError" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 text-xs p-3 rounded-xl flex items-center space-x-2">
+ <i class="fa-solid fa-circle-exclamation flex-shrink-0"></i>
+ <span id="loginErrorMsg">Credenziali non valide o ruolo non autorizzato.</span>
+ </div>
+
+ <form onsubmit="handleLogin(event)" class="space-y-4">
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1.5">Email</label>
+ <div class="relative">
+ <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+ <i class="fa-regular fa-user text-xs"></i>
+ </div>
+ <input type="text" id="loginUser" required placeholder="Indirizzo email" class="w-full bg-soccer-input border border-soccer-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition">
+ </div>
+ </div>
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1.5">Password</label>
+ <div class="relative">
+ <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+ <i class="fa-solid fa-lock text-xs"></i>
+ </div>
+ <input type="password" id="loginPass" required placeholder="Password" class="w-full bg-soccer-input border border-soccer-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition">
+ </div>
+ </div>
+ <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-500 text-white font-bold text-sm hover:from-brand-500 hover:to-brand-400 transition shadow-lg shadow-brand-600/25 flex items-center justify-center gap-2">
+ <i class="fa-solid fa-right-to-bracket"></i> Accedi
+ </button>
+ </form>
+ </div>
+ </div>
+
+ <!-- OVERLAY LOADING / ATTESA BACKEND -->
+ <div id="loadingOverlay" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md hidden flex flex-col items-center justify-center space-y-4 select-none pointer-events-auto">
+ <div class="relative flex items-center justify-center">
+ <div class="w-16 h-16 border-4 border-brand-500/20 border-t-brand-500 rounded-full animate-spin"></div>
+ <div class="absolute text-brand-500 text-xl">
+ <img src="apple-touch-icon.ico" alt="Loading" class="w-24 h-24 object-contain animate-pulse">
+ </div>
+ </div>
+ <div class="text-center space-y-1">
+ <p id="loadingMessage" class="text-white font-bold text-base tracking-wide">Elaborazione in corso...</p>
+ <p class="text-xs text-slate-400">Attendere il completamento dell'operazione</p>
+ </div>
+ </div>
+
+ <!-- CONTENITORE FISSO IN ALTO -->
+ <div class="flex-none z-50 bg-soccer-dark shadow-xl">
+ <!-- HEADER -->
+ <header class="bg-slate-900/90 backdrop-blur border-b border-soccer-border px-4 py-3 flex items-center justify-between">
+ <div class="flex items-center space-x-3">
+ <div class="p-1.5 rounded-xl bg-soccer-input border border-soccer-border shadow-lg shadow-brand-500/10 flex items-center justify-center">
+ <img src="apple-touch-icon.ico" alt="GS APP - Area Direttore Sportivo" class="w-24 h-24 object-contain">
+ </div>
+ <div>
+ <h1 class="font-bold text-base tracking-wide text-white flex items-center gap-2">
+ GS APP
+ </h1>
+ <p class="text-xs text-slate-400 font-medium">Area Direttore Sportivo</p>
+ </div>
+ </div>
+ <div class="flex items-center space-x-2">
+ <button onclick="refreshData()" class="p-2.5 rounded-xl bg-soccer-input border border-soccer-border hover:bg-slate-800 text-slate-300 hover:text-white transition shadow-sm" title="Aggiorna Dati">
+ <i class="fa-solid fa-rotate-right" id="refresh-icon"></i>
+ </button>
+ <button onclick="logout()" class="p-2.5 rounded-xl bg-soccer-input border border-soccer-border hover:bg-red-950/80 text-slate-300 hover:text-red-400 transition shadow-sm" title="Esci">
+ <i class="fa-solid fa-right-from-bracket"></i>
+ </button>
+ </div>
+ </header>
+
+ <!-- NAVIGATION TABS -->
+ <nav class="bg-slate-900/60 backdrop-blur border-b border-soccer-border px-4 py-2.5 flex justify-around gap-2">
+ <button onclick="switchTab('promemoria')" id="tab-promemoria" class="tab-btn flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-center transition flex items-center justify-center gap-2 bg-brand-600 text-white shadow-lg shadow-brand-600/25">
+ <i class="fa-solid fa-bell"></i> Promemoria
+ </button>
+ <button onclick="switchTab('social')" id="tab-social" class="tab-btn flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-soccer-card">
+ <i class="fa-solid fa-share-nodes"></i> Social
+ </button>
+ <button onclick="switchTab('utenti')" id="tab-utenti" class="tab-btn flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-soccer-card">
+ <i class="fa-solid fa-users"></i> Utenti
+ </button>
+ </nav>
+
+ <!-- SEARCH & CONTROLS BAR -->
+ <div class="bg-soccer-dark/95 backdrop-blur border-b border-soccer-border/80 px-4 py-3">
+ <div class="max-w-4xl mx-auto space-y-2.5">
+ <div class="flex flex-col sm:flex-row gap-2.5">
+ <!-- BARRA DI RICERCA -->
+ <div class="relative flex-1 group">
+ <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-brand-500 group-focus-within:text-brand-400 transition">
+ <i class="fa-solid fa-magnifying-glass text-sm"></i>
+ </div>
+ <input type="text" id="searchInput" oninput="toggleClearSearchBtn(); filterData();" placeholder="Cerca..." class="w-full bg-soccer-card border border-soccer-border/90 text-slate-100 placeholder-slate-400 rounded-xl pl-10 pr-9 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition shadow-inner">
+ <button type="button" id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white transition">
+ <i class="fa-solid fa-circle-xmark text-sm"></i>
+ </button>
+ </div>
+ <!-- SELECT TUTTI GLI STATI (Visibile solo in Promemoria) -->
+ <div id="filterStatusContainer" class="sm:w-52">
+ <select id="filterStatus" onchange="filterData()" class="w-full bg-soccer-card border border-soccer-border/90 text-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition appearance-none custom-select-arrow cursor-pointer font-medium shadow-inner">
+ <option value="">Tutti gli stati</option>
+ <option value="CHIUSO">Chiuso</option>
+ <option value="APERTO">Aperto</option>
+ <option value="RIPROGRAMMATO">Riprogrammato</option>
+ <option value="NOTIFICATO">Notificato</option>
+ </select>
+ </div>
+ </div>
+ <!-- CONTROLLI EXTRA DINAMICI PER TAB -->
+ <div id="promemoria-extra-controls" class="flex justify-between items-center text-xs pt-1 px-1">
+ <label class="flex items-center space-x-2 text-slate-300 cursor-pointer select-none">
+ <input type="checkbox" id="hideClosedCheckbox" onchange="filterData()" class="w-4 h-4 rounded border-soccer-border text-brand-600 focus:ring-brand-500 bg-soccer-card cursor-pointer">
+ <span>Nascondi completati / chiusi</span>
+ </label>
+ <span id="count-promemoria" class="bg-soccer-card border border-soccer-border/60 px-3 py-1 rounded-full text-slate-300 font-semibold shadow-sm">0 elementi</span>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- MAIN CONTENT CONTAINER -->
+ <main class="flex-1 overflow-y-auto no-scrollbar p-4 max-w-4xl w-full mx-auto pb-24">
+ <!-- VIEW PROMEMORIA -->
+ <div id="view-promemoria" class="space-y-3 view-section">
+ <div id="list-promemoria" class="space-y-3"></div>
+ </div>
+
+ <!-- VIEW SOCIAL -->
+ <div id="view-social" class="space-y-4 view-section hidden">
+ <!-- Sotto-tab di navigazione per Social -->
+ <div class="flex bg-slate-900/90 p-1.5 rounded-2xl border border-soccer-border shadow-inner">
+ <button onclick="switchSocialSubTab('calendario')" id="subtab-calendario" class="flex-1 py-2 text-xs font-bold rounded-xl text-center transition flex items-center justify-center gap-2 bg-brand-600 text-white shadow-md shadow-brand-600/20">
+ <i class="fa-solid fa-calendar-days"></i> Calendario Gare
+ </button>
+ <button onclick="switchSocialSubTab('pianificazione')" id="subtab-pianificazione" class="flex-1 py-2 text-xs font-bold rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white">
+ <i class="fa-solid fa-clock-rotate-left"></i> Pianificazione Avvisi
+ </button>
+ </div>
+
+ <!-- Contenitore Sub-tab Calendario -->
+ <div id="subview-calendario" class="social-subview space-y-3">
+ <div class="flex justify-between items-center px-1">
+ <label class="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer select-none">
+ <input type="checkbox" id="showCompletedSocialCheckbox" onchange="filterData()" class="w-4 h-4 rounded border-soccer-border text-brand-600 focus:ring-brand-500 bg-soccer-card cursor-pointer">
+ <span>Mostra gare completate</span>
+ </label>
+ <span id="count-social" class="text-xs bg-soccer-card border border-soccer-border px-3 py-1 rounded-full text-slate-300 font-semibold shadow-sm">0 gare</span>
+ </div>
+ <div id="list-social" class="space-y-3"></div>
+ </div>
+
+ <!-- Contenitore Sub-tab Pianificazione Avvisi -->
+ <div id="subview-pianificazione" class="social-subview space-y-3 hidden">
+ <div class="flex justify-between items-center px-1 mb-1">
+ <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5"><i class="fa-solid fa-sliders text-brand-500"></i> Regole Notifiche Settimanali</h2>
+ </div>
+ <div id="list-pianificazione" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
+ </div>
+ </div>
+
+ <!-- VIEW UTENTI -->
+ <div id="view-utenti" class="space-y-3 view-section hidden">
+ <div class="flex justify-between items-center px-1 mb-1">
+ <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5"><i class="fa-solid fa-user-gear text-brand-500"></i> Profili &amp; Preferenze Notifiche</h2>
+ <span id="count-utenti" class="text-xs bg-soccer-card border border-soccer-border px-3 py-1 rounded-full text-slate-300 font-semibold">0 utenti</span>
+ </div>
+ <div id="list-utenti" class="space-y-3"></div>
+ </div>
+ </main>
+
+ <!-- FLOATING ACTION BUTTON (+) -->
+ <div id="fabContainer" class="fixed bottom-6 right-6 z-50">
+ <button onclick="openAddModal()" class="bg-gradient-to-tr from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white w-14 h-14 rounded-2xl shadow-2xl shadow-brand-500/30 flex items-center justify-center text-xl transition transform hover:scale-105 active:scale-95 border border-brand-400/30">
+ <i class="fa-solid fa-plus"></i>
+ </button>
+ </div>
+
+ <!-- MODAL DI INSERIMENTO / MODIFICA OTTIMIZZATO MOBILE -->
+ <div id="actionModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+ <div class="bg-soccer-card border border-soccer-border/90 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-3.5 relative my-auto">
+ <div class="flex justify-between items-center border-b border-soccer-border pb-3">
+ <h3 id="modalTitle" class="font-bold text-base text-white">Nuovo Elemento</h3>
+ <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1.5 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+ </div>
+ 
+<div id="validationError" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 text-xs p-3 rounded-xl flex items-center space-x-2">
+ <i class="fa-solid fa-circle-exclamation flex-shrink-0"></i>
+ <span id="validationErrorMsg">Compila tutti i campi obbligatori per proseguire.</span>
+ </div>
+
+ <div id="modalBody" class="space-y-3.5 max-h-[72vh] overflow-y-auto pr-1 no-scrollbar"></div>
+ 
+<div class="flex justify-end space-x-2.5 pt-3 border-t border-soccer-border">
+ <button onclick="closeModal()" class="px-4 py-2.5 rounded-xl bg-soccer-input border border-soccer-border text-slate-300 text-sm hover:bg-slate-800 transition">Annulla</button>
+ <button onclick="saveModalData()" id="saveModalBtn" class="px-5 py-2.5 rounded-xl bg-brand-600 text-white text-sm font-bold hover:bg-brand-500 transition shadow-lg shadow-brand-600/20 flex items-center">
+ <span id="saveBtnText">Salva</span>
+ </button>
+ </div>
+ </div>
+ </div>
+
+ <!-- JAVASCRIPT CONTROLLER -->
+ <script>
+ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwZ_A1WsOlZ1ntaTvAET0rbNFyg7vsjltu7tx8zoef_jtnhZneSZapjLa_5B7yBBZAGyQ/exec";
+ const CACHE_KEY = "gsapp_cache";
+ const AUTH_KEY = "gsapp_logged_time";
+ const SESSION_DURATION_HOURS = 5; // Durata della sessione in ore
+
+ let currentTab = 'promemoria';
+ let currentSocialSubTab = 'calendario';
+ let appData = { promemoria: [], social: [], pianificazione: [], utenti: [] };
+ let editContext = { mode: 'add', module: '', index: null, rowIndex: null, colIndex: null };
+
+ function handleLogin(event) {
+    event.preventDefault();
+    const userInput = document.getElementById('loginUser').value.trim().toLowerCase();
+    const passInput = document.getElementById('loginPass').value.trim();
+    const errBox = document.getElementById('loginError');
+
+    const _k = [71, 83, 65, 112, 112, 95, 97, 100, 109, 105, 110];
+    const _v = passInput.split('').map(c => c.charCodeAt(0));
+    
+    let isValidPass = (_v.length === _k.length) && _v.every((val, i) => val === _k[i]);
+
+    if (!isValidPass) {
+        errBox.classList.remove('hidden');
+        return;
+    }
+
+    const matchedUser = (appData.utenti || []).find(u => {
+        const nome = String(u['Nome e cognome'] || "").trim().toLowerCase();
+        const email = String(u['Email'] || "").trim().toLowerCase();
+        const ruolo = String(u['Ruolo'] || "").trim().toUpperCase();
+        return (nome.includes(userInput) || email === userInput) && ruolo === "DS";
+    });
+
+    if (matchedUser) {
+        errBox.classList.add('hidden');
+        // Salva il timestamp corrente in localStorage (persiste alla chiusura dell'app)
+        localStorage.setItem(AUTH_KEY, Date.now().toString());
+        document.getElementById('loginOverlay').classList.add('hidden');
+    } else {
+        errBox.classList.remove('hidden');
+    }
+}
+
+ function logout() {
+ localStorage.removeItem(AUTH_KEY);
+ document.getElementById('loginUser').value = '';
+ document.getElementById('loginPass').value = '';
+ document.getElementById('loginError').classList.add('hidden');
+ document.getElementById('loginOverlay').classList.remove('hidden');
+ }
+
+ function checkAuthSession() {
+ const loginTime = localStorage.getItem(AUTH_KEY);
+ if (!loginTime) return false;
+
+ const elapsedHours = (Date.now() - parseInt(loginTime, 10)) / (1000 * 60 * 60);
+ if (elapsedHours > SESSION_DURATION_HOURS) {
+ localStorage.removeItem(AUTH_KEY);
+ return false;
+ }
+ return true;
+ }
+
+ function toggleClearSearchBtn() {
+ const input = document.getElementById('searchInput');
+ const clearBtn = document.getElementById('clearSearchBtn');
+ if (input.value.trim().length > 0) {
+ clearBtn.classList.remove('hidden');
+ } else {
+ clearBtn.classList.add('hidden');
+ }
+ }
+
+ function clearSearch() {
+ const input = document.getElementById('searchInput');
+ input.value = '';
+ toggleClearSearchBtn();
+ filterData();
+ }
+
+ function showLoading(msg = "Elaborazione in corso...") {
+ document.getElementById('loadingMessage').innerText = msg;
+ document.getElementById('loadingOverlay').classList.remove('hidden');
+ }
+
+ function hideLoading() {
+ document.getElementById('loadingOverlay').classList.add('hidden');
+ }
+
+ function initApp() {
+ const cachedData = localStorage.getItem(CACHE_KEY);
+ if (cachedData) {
+ try {
+ appData = JSON.parse(cachedData);
+ renderCurrentView();
+ } catch (e) {}
+ }
+
+ // Verifica se la sessione di autenticazione è ancora valida (entro le 5 ore)
+ if (checkAuthSession()) {
+ document.getElementById('loginOverlay').classList.add('hidden');
+ } else {
+ document.getElementById('loginOverlay').classList.remove('hidden');
+ }
+
+ loadData(false).then(() => {
+ if (checkAuthSession()) {
+ document.getElementById('loginOverlay').classList.add('hidden');
+ }
+ });
+ }
+
+ async function loadData(forced = false) {
+ document.getElementById('refresh-icon').classList.add('fa-spin');
+ if (forced) {
+ showLoading("Sincronizzazione dati in corso...");
+ }
+ 
+try {
+ const response = await fetch(WEB_APP_URL + "?action=get_data");
+ const newData = await response.json();
+ if (newData && (newData.promemoria || newData.social)) {
+ appData = newData;
+ localStorage.setItem(CACHE_KEY, JSON.stringify(appData));
+ renderCurrentView();
+ }
+ } catch (error) {
+ if (forced) alert("Errore di connessione al database.");
+ } finally {
+ document.getElementById('refresh-icon').classList.remove('fa-spin');
+ hideLoading();
+ }
+ }
+
+ function refreshData() { loadData(true); }
+
+ function switchTab(tab) {
+ currentTab = tab;
+ document.querySelectorAll('.tab-btn').forEach(btn => {
+ btn.className = "tab-btn flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-soccer-card";
+ });
+ document.getElementById(`tab-${tab}`).className = "tab-btn flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-xl text-center transition flex items-center justify-center gap-2 bg-brand-600 text-white shadow-lg shadow-brand-600/25";
+ 
+document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+ document.getElementById(`view-${tab}`).classList.remove('hidden');
+ 
+const fab = document.getElementById('fabContainer');
+ if (tab === 'social' && currentSocialSubTab === 'pianificazione') {
+ fab.classList.add('hidden');
+ } else {
+ fab.classList.remove('hidden');
+ }
+
+ const promemoriaControls = document.getElementById('promemoria-extra-controls');
+ const statusContainer = document.getElementById('filterStatusContainer');
+
+ promemoriaControls.style.display = (tab === 'promemoria') ? 'flex' : 'none';
+ statusContainer.style.display = (tab === 'promemoria') ? 'block' : 'none';
+ 
+clearSearch();
+ }
+
+ function switchSocialSubTab(subtab) {
+ currentSocialSubTab = subtab;
+ document.querySelectorAll('#view-social .social-subview').forEach(el => el.classList.add('hidden'));
+ document.getElementById(`subview-${subtab}`).classList.remove('hidden');
+
+ document.getElementById('subtab-calendario').className = "flex-1 py-2 text-xs font-bold rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white";
+ document.getElementById('subtab-pianificazione').className = "flex-1 py-2 text-xs font-bold rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white";
+
+ document.getElementById(`subtab-${subtab}`).className = "flex-1 py-2 text-xs font-bold rounded-xl text-center transition flex items-center justify-center gap-2 bg-brand-600 text-white shadow-md shadow-brand-600/20";
+
+ const fab = document.getElementById('fabContainer');
+ if (subtab === 'pianificazione') {
+ fab.classList.add('hidden');
+ } else {
+ fab.classList.remove('hidden');
+ }
+
+ renderCurrentView();
+ }
+
+ function renderCurrentView() {
+ const query = document.getElementById('searchInput').value.toLowerCase().trim();
+ const statusFilter = document.getElementById('filterStatus').value;
+
+ if (currentTab === 'promemoria') {
+ const container = document.getElementById('list-promemoria');
+ const hideClosed = document.getElementById('hideClosedCheckbox')?.checked || false;
+
+ const filtered = appData.promemoria.filter((item, idx) => {
+ const oggetto = String(item.Oggetto || "");
+ const descrizione = String(item.Descrizione || "");
+ const matchText = (oggetto + " " + descrizione).toLowerCase().includes(query);
+ const esito = String(item.Esito || "").trim();
+ 
+let matchStatus = true;
+ if (statusFilter === 'APERTO') {
+ matchStatus = (esito === '' || esito === 'APERTO');
+ } else if (statusFilter) {
+ matchStatus = (esito === statusFilter);
+ }
+
+ const matchHide = !(hideClosed && esito === 'CHIUSO');
+ item._originalIndex = idx;
+ return matchText && matchStatus && matchHide;
+ }).sort((a, b) => {
+ const aClosed = String(a.Esito || "").trim() === 'CHIUSO';
+ const bClosed = String(b.Esito || "").trim() === 'CHIUSO';
+ if (aClosed && !bClosed) return 1;
+ if (!aClosed && bClosed) return -1;
+ return new Date(a['Data e Ora Avviso'] || a['Data Scadenza'] || 0) - new Date(b['Data e Ora Avviso'] || b['Data Scadenza'] || 0);
+ });
+
+ document.getElementById('count-promemoria').innerText = `${filtered.length} elementi`;
+ 
+container.innerHTML = filtered.map(item => {
+ const esito = String(item.Esito || "").trim();
+ const isAttivo = (esito === '' || esito === 'APERTO' || esito.includes('RIPROGRAMMATO') || esito.includes('POSPOSTO'));
+ const mostraProssimaNotifica = isAttivo && item['Data e Ora Avviso'];
+
+ return `
+ <div class="bg-soccer-card border border-soccer-border/80 hover:border-slate-500/80 rounded-2xl p-4 shadow-lg transition-all duration-200">
+ <div class="flex justify-between items-start mb-1.5">
+ <h3 class="font-bold text-sm text-white pr-2 leading-snug">${item.Oggetto || ''}</h3>
+ <div class="flex items-center space-x-1.5 flex-shrink-0">
+ <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold ${getStatusBadge(item.Esito)}">${item.Esito || 'APERTO'}</span>
+ <button onclick="openEditModal('promemoria', ${item._originalIndex})" class="bg-soccer-input border border-soccer-border hover:bg-slate-700 w-8 h-8 rounded-xl text-brand-400 hover:text-white transition flex items-center justify-center shadow-sm" title="Modifica">
+ <i class="fa-solid fa-pen-to-square text-xs"></i>
+ </button>
+ <button onclick="deletePromemoria(${item._originalIndex})" class="bg-soccer-input border border-soccer-border hover:bg-red-950/80 w-8 h-8 rounded-xl text-slate-400 hover:text-red-400 transition flex items-center justify-center shadow-sm" title="Elimina">
+ <i class="fa-solid fa-trash text-xs"></i>
+ </button>
+ </div>
+ </div>
+ <p class="text-xs text-slate-300 mb-3 leading-relaxed">${item.Descrizione || ''}</p>
+ <div class="grid grid-cols-1 ${mostraProssimaNotifica ? 'sm:grid-cols-2' : ''} gap-2">
+ <div class="bg-slate-900/60 p-2.5 rounded-xl border border-soccer-border/60 flex flex-col justify-center">
+ <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold"><i class="fa-solid fa-calendar-days mr-1 text-brand-500"></i> Scadenza</span>
+ <strong class="text-xs text-brand-400 mt-0.5">${formatDate(item['Data Scadenza'])}</strong>
+ </div>
+ ${mostraProssimaNotifica ? `
+ <div class="bg-blue-950/20 p-2.5 rounded-xl border border-blue-500/20 flex flex-col justify-center">
+ <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold"><i class="fa-regular fa-clock mr-1 text-blue-400"></i> Prossima Notifica</span>
+ <strong class="text-xs text-blue-300 mt-0.5">${formatDateTime(item['Data e Ora Avviso'])}</strong>
+ </div>
+ ` : ''}
+ </div>
+ </div>
+ `;
+ }).join('') || '<p class="text-center text-slate-500 py-12">Nessun promemoria trovato.</p>';
+ } 
+else if (currentTab === 'social') {
+ if (currentSocialSubTab === 'calendario') {
+ const containerSocial = document.getElementById('list-social');
+ const showCompleted = document.getElementById('showCompletedSocialCheckbox')?.checked || false;
+
+ let firstOpenIdx = -1;
+
+ const processedSocial = appData.social.map((item, idx) => {
+ item._originalIndex = idx;
+ const esiti = [
+ item['Esito NEXT MATCH'],
+ item['Esito CONVOCATI'],
+ item['Esito MATCH DAY'],
+ item['Esito STARTING XI'],
+ item['Esito FULL TIME'],
+ item['Esito CLASSIFICA']
+ ];
+ const isTuttoChiuso = esiti.every(e => String(e || "").trim().toUpperCase() === 'CHIUSO');
+ item._isTuttoChiuso = isTuttoChiuso;
+ return item;
+ });
+
+ for (let i = 0; i < processedSocial.length; i++) {
+ if (!processedSocial[i]._isTuttoChiuso) {
+ firstOpenIdx = i;
+ break;
+ }
+ }
+
+ const filteredSocial = processedSocial.filter(item => {
+ const matchText = String(item.Gara || "").toLowerCase().includes(query);
+ if (query.length > 0) {
+ return matchText;
+ }
+ if (showCompleted) {
+ return true;
+ }
+ return !item._isTuttoChiuso;
+ });
+
+ document.getElementById('count-social').innerText = `${filteredSocial.length} gare`;
+
+ containerSocial.innerHTML = filteredSocial.map((item, index) => {
+ const isOpenByDefault = (query.length === 0 && item._originalIndex === firstOpenIdx);
+ const accordionId = `social-info-${item._originalIndex}`;
+ const iconId = `chevron-${item._originalIndex}`;
+
+ const oraGaraFormatted = formatOraGara(item['Ora Gara']);
+
+ return `
+ <div class="bg-soccer-card border border-soccer-border/80 rounded-2xl p-4 shadow-lg space-y-3">
+ <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-soccer-border/50 pb-3">
+ <div class="flex items-center space-x-2">
+ <span class="text-[11px] bg-slate-900 border border-soccer-border/80 text-brand-400 font-bold px-2.5 py-1 rounded-lg">Giornata ${item.Giornata || ''}</span>
+ <h3 class="font-bold text-sm text-white">${item.Gara || ''}</h3>
+ </div>
+ <div class="flex items-center space-x-2 self-end sm:self-center">
+ <div class="text-xs text-slate-300 font-medium flex items-center gap-1.5 bg-slate-900/60 px-3 py-1 rounded-xl border border-soccer-border/40">
+ <i class="fa-regular fa-clock text-brand-500"></i>
+ <span>${formatDate(item['Data Gara'])} ${oraGaraFormatted ? 'alle ' + oraGaraFormatted : ''}</span>
+ </div>
+ <button onclick="openEditModal('social', ${item._originalIndex})" class="bg-soccer-input border border-soccer-border hover:bg-slate-700 w-8 h-8 rounded-xl text-brand-400 hover:text-white transition flex items-center justify-center shadow-sm" title="Modifica Gara">
+ <i class="fa-solid fa-pen-to-square text-xs"></i>
+ </button>
+ <button onclick="deleteGara(${item._originalIndex})" class="bg-soccer-input border border-soccer-border hover:bg-red-950/80 w-8 h-8 rounded-xl text-slate-400 hover:text-red-400 transition flex items-center justify-center shadow-sm" title="Elimina Gara">
+ <i class="fa-solid fa-trash text-xs"></i>
+ </button>
+ </div>
+ </div>
+
+ <div>
+ <button onclick="toggleSocialAccordion('${accordionId}', '${iconId}')" class="w-full flex items-center justify-between py-1.5 px-2 text-xs font-semibold text-slate-400 hover:text-white bg-slate-900/40 hover:bg-slate-900/80 rounded-xl transition">
+ <span class="flex items-center gap-1.5">
+ <i class="fa-solid fa-share-nodes text-brand-500"></i> Informazioni post social
+ </span>
+ <i id="${iconId}" class="fa-solid fa-chevron-${isOpenByDefault ? 'up' : 'down'} text-xs transition-transform"></i>
+ </button>
+
+ <div id="${accordionId}" class="${isOpenByDefault ? '' : 'hidden'} pt-3 space-y-2">
+ <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center">
+ <div class="bg-slate-900/60 p-2 rounded-xl border border-soccer-border/40">
+ <span class="block text-[9px] text-slate-400 uppercase tracking-wider font-semibold">Next Match</span>
+ <span class="text-xs font-bold ${getStatusColor(item['Esito NEXT MATCH'])}">${formatEsitoDisplay(item['Esito NEXT MATCH'])}</span>
+ </div>
+ <div class="bg-slate-900/60 p-2 rounded-xl border border-soccer-border/40">
+ <span class="block text-[9px] text-slate-400 uppercase tracking-wider font-semibold">Convocati</span>
+ <span class="text-xs font-bold ${getStatusColor(item['Esito CONVOCATI'])}">${formatEsitoDisplay(item['Esito CONVOCATI'])}</span>
+ </div>
+ <div class="bg-slate-900/60 p-2 rounded-xl border border-soccer-border/40">
+ <span class="block text-[9px] text-slate-400 uppercase tracking-wider font-semibold">Match Day</span>
+ <span class="text-xs font-bold ${getStatusColor(item['Esito MATCH DAY'])}">${formatEsitoDisplay(item['Esito MATCH DAY'])}</span>
+ </div>
+ <div class="bg-slate-900/60 p-2 rounded-xl border border-soccer-border/40">
+ <span class="block text-[9px] text-slate-400 uppercase tracking-wider font-semibold">Starting XI</span>
+ <span class="text-xs font-bold ${getStatusColor(item['Esito STARTING XI'])}">${formatEsitoDisplay(item['Esito STARTING XI'])}</span>
+ </div>
+ <div class="bg-slate-900/60 p-2 rounded-xl border border-soccer-border/40">
+ <span class="block text-[9px] text-slate-400 uppercase tracking-wider font-semibold">Full Time</span>
+ <span class="text-xs font-bold ${getStatusColor(item['Esito FULL TIME'])}">${formatEsitoDisplay(item['Esito FULL TIME'])}</span>
+ </div>
+ <div class="bg-slate-900/60 p-2 rounded-xl border border-soccer-border/40">
+ <span class="block text-[9px] text-slate-400 uppercase tracking-wider font-semibold">Classifica</span>
+ <span class="text-xs font-bold ${getStatusColor(item['Esito CLASSIFICA'])}">${formatEsitoDisplay(item['Esito CLASSIFICA'])}</span>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ `;
+ }).join('') || '<p class="text-center text-slate-500 py-12">Nessuna gara trovata.</p>';
+ } else if (currentSocialSubTab === 'pianificazione') {
+ const containerPlan = document.getElementById('list-pianificazione');
+ const planData = (appData.pianificazione || []).filter(item => String(item.Contenuto || "").toLowerCase().includes(query));
+ 
+containerPlan.innerHTML = planData.map((plan, idx) => {
+ const giornoEsteso = getGiornoEsteso(plan.Giorno);
+ return `
+ <div class="bg-soccer-card border border-soccer-border/80 hover:border-brand-500/50 rounded-2xl p-4 shadow-lg transition-all duration-200 flex items-center justify-between group">
+ <div class="space-y-1">
+ <span class="text-[11px] font-black uppercase tracking-wider text-brand-400">${plan.Contenuto || ''}</span>
+ <div class="flex items-center space-x-3 text-xs text-slate-200 font-medium pt-0.5">
+ <span class="flex items-center gap-1.5"><i class="fa-solid fa-calendar-day text-brand-500/80"></i>${giornoEsteso}</span>
+ <span class="flex items-center gap-1.5"><i class="fa-regular fa-clock text-blue-400/80"></i>${plan.Orario || '-'}</span>
+ </div>
+ </div>
+ <div class="flex items-center">
+ <button onclick="openEditModal('pianificazione', ${idx})" class="bg-soccer-input border border-soccer-border group-hover:border-brand-500/50 hover:bg-brand-600 hover:text-white w-9 h-9 rounded-xl text-brand-400 transition flex items-center justify-center shadow-sm" title="Modifica">
+ <i class="fa-solid fa-pen-to-square text-xs"></i>
+ </button>
+ </div>
+ </div>
+ `;
+ }).join('') || '<p class="text-center text-slate-500 py-12 col-span-full">Nessuna pianificazione trovata.</p>';
+ }
+ }
+ else if (currentTab === 'utenti') {
+ const container = document.getElementById('list-utenti');
+ const filtered = appData.utenti.filter((item, idx) => {
+ item._originalIndex = idx;
+ return String(item['Nome e cognome'] || "").toLowerCase().includes(query);
+ });
+ document.getElementById('count-utenti').innerText = `${filtered.length} utenti`;
+
+ container.innerHTML = filtered.map(item => `
+ <div class="bg-soccer-card border border-soccer-border/80 rounded-2xl p-4 shadow-lg flex items-center justify-between">
+ <div>
+ <h3 class="font-bold text-sm text-white">${item['Nome e cognome'] || ''} <span class="text-[11px] font-semibold text-brand-400 bg-brand-900/40 border border-brand-500/20 px-2 py-0.5 rounded-lg ml-1.5">${item.Ruolo || ''}</span></h3>
+ <p class="text-xs text-slate-400 mt-1 flex items-center gap-1.5"><i class="fa-regular fa-envelope text-slate-500"></i>${item.Email || ''}</p>
+ </div>
+ <div class="flex items-center space-x-1.5 flex-shrink-0">
+ <button onclick="openEditModal('utenti', ${item._originalIndex})" class="bg-soccer-input border border-soccer-border hover:bg-slate-700 w-8 h-8 rounded-xl text-brand-400 hover:text-white transition flex items-center justify-center shadow-sm" title="Modifica">
+ <i class="fa-solid fa-pen-to-square text-xs"></i>
+ </button>
+ <button onclick="deleteUtente(${item._originalIndex})" class="bg-soccer-input border border-soccer-border hover:bg-red-950/80 w-8 h-8 rounded-xl text-slate-400 hover:text-red-400 transition flex items-center justify-center shadow-sm" title="Elimina">
+ <i class="fa-solid fa-trash text-xs"></i>
+ </button>
+ </div>
+ </div>
+ `).join('') || '<p class="text-center text-slate-500 py-12">Nessun utente trovato.</p>';
+ }
+ }
+
+ function formatEsitoDisplay(val) {
+ if (!val || String(val).trim() === '') return 'APERTO';
+ let str = String(val).trim();
+ if (str.toUpperCase().startsWith('RIPROGRAMMATO')) {
+ if (str.includes(':')) {
+ const parts = str.split(':');
+ if (parts.length >= 3) {
+ const dataOra = parts.slice(1).join(':').trim();
+ return `RIPROGRAMMATO<br><span class="text-[10px] text-amber-300 font-normal">${dataOra}</span>`;
+ }
+ }
+ return 'RIPROGRAMMATO';
+ }
+ return str;
+ }
+
+ function toggleSocialAccordion(accordionId, iconId) {
+ const acc = document.getElementById(accordionId);
+ const icon = document.getElementById(iconId);
+ if (acc.classList.contains('hidden')) {
+ acc.classList.remove('hidden');
+ icon.classList.remove('fa-chevron-down');
+ icon.classList.add('fa-chevron-up');
+ } else {
+ acc.classList.add('hidden');
+ icon.classList.remove('fa-chevron-up');
+ icon.classList.add('fa-chevron-down');
+ }
+ }
+
+ function getGiornoEsteso(abbrev) {
+ const map = {
+ 'LUN': 'LUNED\u00CC',
+ 'MAR': 'MARTED\u00CC',
+ 'MER': 'MERCOLED\u00CC',
+ 'GIO': 'GIOVED\u00CC',
+ 'VEN': 'VENERD\u00CC',
+ 'SAB': 'SABATO',
+ 'DOM': 'DOMENICA'
+ };
+ const clean = String(abbrev || '').toUpperCase().trim();
+ return map[clean] || abbrev || '-';
+ }
+
+ function formatOraGara(oraStr) {
+ if (!oraStr) return '';
+ let str = String(oraStr).trim();
+ if (str.includes('T')) {
+ const d = new Date(str);
+ if (!isNaN(d.getTime())) {
+ const pad = n => String(n).padStart(2, '0');
+ return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+ }
+ }
+ str = str.replace(/\./g, ':');
+ const parts = str.split(':');
+ if (parts.length >= 2) {
+ const pad = n => String(n).padStart(2, '0');
+ return `${pad(parts[0])}:${pad(parts[1])}`;
+ }
+ return str;
+ }
+
+ async function deletePromemoria(index) {
+ if (!confirm("Sei sicuro di voler eliminare questo promemoria?")) return;
+ 
+const item = appData.promemoria[index];
+ showLoading("Eliminazione in corso...");
+
+ try {
+ const response = await fetch(WEB_APP_URL, {
+ method: 'POST',
+ body: JSON.stringify({
+ module: 'promemoria',
+ action: 'delete',
+ payload: { rowIndex: item._rowIndex }
+ })
+ });
+ const res = await response.json();
+ if (res.status === 'success') {
+ await loadData(true);
+ } else {
+ hideLoading();
+ alert("Errore durante l'eliminazione: " + res.message);
+ }
+ } catch (err) {
+ hideLoading();
+ alert("Errore di rete durante l'eliminazione.");
+ }
+ }
+
+ async function deleteGara(index) {
+ if (!confirm("Sei sicuro di voler eliminare questa gara dal calendario?")) return;
+ 
+const item = appData.social[index];
+ showLoading("Eliminazione in corso...");
+
+ try {
+ const response = await fetch(WEB_APP_URL, {
+ method: 'POST',
+ body: JSON.stringify({
+ module: 'social',
+ action: 'delete',
+ payload: { rowIndex: item._rowIndex }
+ })
+ });
+ const res = await response.json();
+ if (res.status === 'success') {
+ await loadData(true);
+ } else {
+ hideLoading();
+ alert("Errore durante l'eliminazione: " + res.message);
+ }
+ } catch (err) {
+ hideLoading();
+ alert("Errore di rete durante l'eliminazione.");
+ }
+ }
+
+ async function deleteUtente(index) {
+ if (!confirm("Sei sicuro di voler eliminare questo utente?")) return;
+ 
+const item = appData.utenti[index];
+ showLoading("Eliminazione in corso...");
+
+ try {
+ const response = await fetch(WEB_APP_URL, {
+ method: 'POST',
+ body: JSON.stringify({
+ module: 'utenti',
+ action: 'delete',
+ payload: { rowIndex: item._rowIndex }
+ })
+ });
+ const res = await response.json();
+ if (res.status === 'success') {
+ await loadData(true);
+ } else {
+ hideLoading();
+ alert("Errore durante l'eliminazione: " + res.message);
+ }
+ } catch (err) {
+ hideLoading();
+ alert("Errore di rete durante l'eliminazione.");
+ }
+ }
+
+ function openAddModal() {
+ if (currentTab === 'social' && currentSocialSubTab === 'pianificazione') {
+ return;
+ }
+ 
+let moduleTarget = currentTab;
+ if (currentTab === 'social' && currentSocialSubTab === 'calendario') {
+ moduleTarget = 'social';
+ }
+
+ editContext = { mode: 'add', module: moduleTarget, index: null, rowIndex: null, colIndex: null };
+ 
+let title = 'Nuovo Elemento';
+ if (moduleTarget === 'promemoria') title = 'Nuovo Promemoria';
+ else if (moduleTarget === 'utenti') title = 'Nuovo Utente';
+ else if (moduleTarget === 'social') title = 'Nuova Gara';
+
+ document.getElementById('modalTitle').innerText = title;
+ hideValidationError();
+ 
+let defaultData = {};
+ if (moduleTarget === 'social') {
+ let maxGiornata = 0;
+ (appData.social || []).forEach(g => {
+ let gNum = parseInt(g.Giornata);
+ if (!isNaN(gNum) && gNum > maxGiornata) {
+ maxGiornata = gNum;
+ }
+ });
+ defaultData.Giornata = maxGiornata + 1;
+ }
+
+ buildModalForm(defaultData);
+ document.getElementById('actionModal').classList.remove('hidden');
+ }
+
+ function openEditModal(module, index) {
+ const item = appData[module][index];
+ editContext = { 
+mode: 'edit', 
+module: module, 
+index: index, 
+rowIndex: item._rowIndex,
+ colIndex: item.colIndex 
+};
+ if (module === 'promemoria') {
+ document.getElementById('modalTitle').innerText = 'Modifica Promemoria';
+ } else if (module === 'utenti') {
+ document.getElementById('modalTitle').innerText = 'Modifica Utente';
+ } else if (module === 'pianificazione') {
+ document.getElementById('modalTitle').innerText = 'Modifica Pianificazione Avviso';
+ } else if (module === 'social') {
+ document.getElementById('modalTitle').innerText = 'Modifica Gara';
+ }
+ hideValidationError();
+ buildModalForm(item);
+ document.getElementById('actionModal').classList.remove('hidden');
+ }
+
+ function closeModal() {
+ document.getElementById('actionModal').classList.add('hidden');
+ hideValidationError();
+ }
+
+ function hideValidationError() {
+ document.getElementById('validationError').classList.add('hidden');
+ }
+
+ function showValidationError(msg) {
+ const errBox = document.getElementById('validationError');
+ document.getElementById('validationErrorMsg').innerText = msg;
+ errBox.classList.remove('hidden');
+ }
+
+ function toggleRiprogrammatoDatetime(selectId, dateInputContainerId) {
+ const selectEl = document.getElementById(selectId);
+ const containerEl = document.getElementById(dateInputContainerId);
+ if (selectEl && containerEl) {
+ if (selectEl.value === 'RIPROGRAMMATO') {
+ containerEl.classList.remove('hidden');
+ } else {
+ containerEl.classList.add('hidden');
+ }
+ }
+ }
+
+ function buildModalForm(data = {}) {
+ const body = document.getElementById('modalBody');
+ if (editContext.module === 'promemoria') {
+ const freqVal = String(data['Tipo frequenza'] || "").toUpperCase().trim();
+ body.innerHTML = `
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Oggetto <span class="text-red-400">*</span></label>
+ <input type="text" id="f_oggetto" value="${data.Oggetto || ''}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ </div>
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Descrizione <span class="text-red-400">*</span></label>
+ <textarea id="f_descrizione" rows="2.5" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">${data.Descrizione || ''}</textarea>
+ </div>
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Data Scadenza <span class="text-red-400">*</span></label>
+ <input type="date" id="f_datascadenza" value="${toInputDate(data['Data Scadenza'])}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ </div>
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Data e Ora Avviso <span class="text-red-400">*</span></label>
+ <input type="datetime-local" id="f_dataoraavviso" value="${toInputDatetime(data['Data e Ora Avviso'])}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ </div>
+ </div>
+ <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Esito <span class="text-red-400">*</span></label>
+ <select id="f_esito" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-2.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ <option value="APERTO" ${!data.Esito || data.Esito === 'APERTO' ? 'selected' : ''}>APERTO</option>
+ <option value="CHIUSO" ${data.Esito === 'CHIUSO' ? 'selected' : ''}>CHIUSO</option>
+ <option value="RIPROGRAMMATO" ${data.Esito && data.Esito.toUpperCase().startsWith('RIPROGRAMMATO') ? 'selected' : ''}>RIPROGRAMMATO</option>
+ <option value="NOTIFICATO" ${data.Esito === 'NOTIFICATO' ? 'selected' : ''}>NOTIFICATO</option>
+ </select>
+ </div>
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Frequenza</label>
+ <select id="f_frequenza" class="w-full bg-soccer-input border border-soccer-border rounded-xl px-2.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ <option value="" ${!freqVal || freqVal === 'NESSUNA' ? 'selected' : ''}></option>
+ <option value="GIORNALIERA" ${freqVal === 'GIORNALIERA' ? 'selected' : ''}>GIORNALIERA</option>
+ <option value="SETTIMANALE" ${freqVal === 'SETTIMANALE' ? 'selected' : ''}>SETTIMANALE</option>
+ <option value="MENSILE" ${freqVal === 'MENSILE' ? 'selected' : ''}>MENSILE</option>
+ </select>
+ </div>
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Ora Frequenza</label>
+ <input type="time" id="f_orafrequenza" value="${toInputTime(data['Ora frequenza'])}" class="w-full bg-soccer-input border border-soccer-border rounded-xl px-2.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ </div>
+ </div>
+ `;
+ } else if (editContext.module === 'utenti') {
+ body.innerHTML = `
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Nome e cognome <span class="text-red-400">*</span></label>
+ <input type="text" id="u_nome" value="${data['Nome e cognome'] || ''}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ </div>
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Ruolo <span class="text-red-400">*</span></label>
+ <input type="text" id="u_ruolo" value="${data.Ruolo || ''}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ </div>
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Email <span class="text-red-400">*</span></label>
+ <input type="email" id="u_email" value="${data.Email || ''}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ </div>
+ </div>
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Riceve Promemoria <span class="text-red-400">*</span></label>
+ <select id="u_ric_prom" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ <option value="S&igrave;" ${data['Riceve Promemoria'] === 'S ' ? 'selected' : ''}>S&igrave;</option>
+ <option value="No" ${data['Riceve Promemoria'] === 'No' ? 'selected' : ''}>No</option>
+ </select>
+ </div>
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Interagisce Promemoria <span class="text-red-400">*</span></label>
+ <select id="u_int_prom" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ <option value="S&igrave;" ${data['Interagisce Promemoria'] === 'S ' ? 'selected' : ''}>S&igrave;</option>
+ <option value="No" ${data['Interagisce Promemoria'] === 'No' ? 'selected' : ''}>No</option>
+ </select>
+ </div>
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Riceve Social <span class="text-red-400">*</span></label>
+ <select id="u_ric_soc" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ <option value="S&igrave;" ${data['Riceve Social'] === 'S ' ? 'selected' : ''}>S&igrave;</option>
+ <option value="No" ${data['Riceve Social'] === 'No' ? 'selected' : ''}>No</option>
+ </select>
+ </div>
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Interagisce Social <span class="text-red-400">*</span></label>
+ <select id="u_int_soc" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ <option value="S&igrave;" ${data['Interagisce Social'] === 'S ' ? 'selected' : ''}>S&igrave;</option>
+ <option value="No" ${data['Interagisce Social'] === 'No' ? 'selected' : ''}>No</option>
+ </select>
+ </div>
+ </div>
+ `;
+ } else if (editContext.module === 'pianificazione') {
+ const giornoVal = String(data.Giorno || "").toUpperCase().trim();
+ const orarioVal = toInputTime(data.Orario || '');
+ body.innerHTML = `
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Contenuto</label>
+ <input type="text" id="p_contenuto" value="${data.Contenuto || ''}" disabled class="form-input w-full bg-slate-950/80 border border-soccer-border/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-400 cursor-not-allowed font-medium">
+ </div>
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Giorno di Avviso <span class="text-red-400">*</span></label>
+ <select id="p_giorno" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ <option value="LUN" ${giornoVal === 'LUN' || giornoVal.includes('LUN') ? 'selected' : ''}>LUNED&Igrave;</option>
+ <option value="MAR" ${giornoVal === 'MAR' || giornoVal.includes('MAR') ? 'selected' : ''}>MARTED&Igrave;</option>
+ <option value="MER" ${giornoVal === 'MER' || giornoVal.includes('MER') ? 'selected' : ''}>MERCOLED&Igrave;</option>
+ <option value="GIO" ${giornoVal === 'GIO' || giornoVal.includes('GIO') ? 'selected' : ''}>GIOVED&Igrave;</option>
+ <option value="VEN" ${giornoVal === 'VEN' || giornoVal.includes('VEN') ? 'selected' : ''}>VENERD&Igrave;</option>
+ <option value="SAB" ${giornoVal === 'SAB' || giornoVal.includes('SAB') ? 'selected' : ''}>SABATO</option>
+ <option value="DOM" ${giornoVal === 'DOM' || giornoVal.includes('DOM') ? 'selected' : ''}>DOMENICA</option>
+ </select>
+ </div>
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Orario di Avviso <span class="text-red-400">*</span></label>
+ <input type="time" id="p_orario" value="${orarioVal}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ </div>
+ </div>
+ `;
+ } else if (editContext.module === 'social') {
+ const parseRiprogrammatoData = (raw) => {
+ if (!raw) return { isRip: false, datetime: '' };
+ const str = String(raw).trim();
+ if (str.toUpperCase().startsWith('RIPROGRAMMATO')) {
+ if (str.includes(':')) {
+ const parts = str.split(':');
+ const dtStr = parts.slice(1).join(':').trim();
+ if (dtStr) {
+ const spaceParts = dtStr.split(' ');
+ if (spaceParts.length >= 2) {
+ const datePart = spaceParts[0];
+ const timePart = spaceParts[1].substring(0, 5);
+ return { isRip: true, datetime: `${datePart}T${timePart}` };
+ }
+ }
+ }
+ return { isRip: true, datetime: '' };
+ }
+ return { isRip: false, datetime: '' };
+ };
+
+ const fieldsConfig = [
+ { id: 's_enext', dtId: 's_enext_dt', label: 'Next Match', key: 'Esito NEXT MATCH' },
+ { id: 's_econv', dtId: 's_econv_dt', label: 'Convocati', key: 'Esito CONVOCATI' },
+ { id: 's_ematch', dtId: 's_ematch_dt', label: 'Match Day', key: 'Esito MATCH DAY' },
+ { id: 's_estart', dtId: 's_estart_dt', label: 'Starting XI', key: 'Esito STARTING XI' },
+ { id: 's_efull', dtId: 's_efull_dt', label: 'Full Time', key: 'Esito FULL TIME' },
+ { id: 's_eclass', dtId: 's_eclass_dt', label: 'Classifica', key: 'Esito CLASSIFICA' }
+ ];
+
+ const esitiFieldsHtml = fieldsConfig.map(f => {
+ const rawVal = data[f.key] || '';
+ const ripInfo = parseRiprogrammatoData(rawVal);
+ const cleanVal = String(rawVal).trim().toUpperCase();
+ const baseVal = ripInfo.isRip ? 'RIPROGRAMMATO' : cleanVal;
+
+ return `
+ <div class="bg-slate-900/50 p-2.5 rounded-xl border border-soccer-border/50">
+ <label class="block text-[11px] font-semibold text-slate-300 mb-1">${f.label}</label>
+ <select id="${f.id}" onchange="toggleRiprogrammatoDatetime('${f.id}', '${f.dtId}_box')" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+ <option value="APERTO" ${!baseVal || baseVal === 'APERTO' ? 'selected' : ''}>APERTO</option>
+ <option value="CHIUSO" ${baseVal === 'CHIUSO' ? 'selected' : ''}>CHIUSO</option>
+ <option value="NOTIFICATO" ${baseVal === 'NOTIFICATO' ? 'selected' : ''}>NOTIFICATO</option>
+ <option value="RIPROGRAMMATO" ${baseVal === 'RIPROGRAMMATO' ? 'selected' : ''}>RIPROGRAMMATO</option>
+ </select>
+ <div id="${f.dtId}_box" class="${ripInfo.isRip ? '' : 'hidden'} mt-2">
+ <input type="datetime-local" id="${f.dtId}" value="${ripInfo.datetime}" class="rip-datetime-input w-full bg-amber-950/30 border border-amber-500/40 rounded-lg px-2.5 py-2 text-xs text-amber-200 focus:outline-none focus:border-amber-400">
+ </div>
+ </div>
+ `;
+ }).join('');
+
+ body.innerHTML = `
+ <div class="grid grid-cols-3 gap-2.5">
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Giornata</label>
+ <input type="number" id="s_giornata" value="${data.Giornata || '1'}" disabled class="w-full bg-slate-950/80 border border-soccer-border/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-400 cursor-not-allowed font-medium">
+ </div>
+ <div class="col-span-2">
+ <label class="block text-xs font-medium text-slate-400 mb-1">Gara <span class="text-red-400">*</span></label>
+ <input type="text" id="s_gara" value="${data.Gara || ''}" placeholder="Es: Squadra casa - Squadra ospite" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ </div>
+ </div>
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Data Gara <span class="text-red-400">*</span></label>
+ <input type="date" id="s_datagara" value="${toInputDate(data['Data Gara'])}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ </div>
+ <div>
+ <label class="block text-xs font-medium text-slate-400 mb-1">Ora Gara <span class="text-red-400">*</span></label>
+ <input type="time" id="s_oragara" value="${toInputTime(data['Ora Gara'])}" class="form-input w-full bg-soccer-input border border-soccer-border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+ </div>
+ </div>
+ <div class="border-t border-soccer-border pt-3 mt-2">
+ <label class="block text-xs font-bold uppercase tracking-wider text-brand-400 mb-2.5">Esiti Post Social</label>
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+ ${esitiFieldsHtml}
+ </div>
+ </div>
+ `;
+ }
+ }
+
+ function resolveEsitoValue(selectId, dtInputId) {
+ const selectEl = document.getElementById(selectId);
+ if (!selectEl) return '';
+ 
+const val = selectEl.value;
+ if (val === 'RIPROGRAMMATO') {
+ const dtEl = document.getElementById(dtInputId);
+ if (dtEl && dtEl.value) {
+ const formattedDt = dtEl.value.replace('T', ' ') + ':00';
+ return `RIPROGRAMMATO:${formattedDt}`;
+ }
+ return 'RIPROGRAMMATO';
+ }
+ if (val === 'APERTO') {
+ return '';
+ }
+ return val;
+ }
+
+ async function saveModalData() {
+ hideValidationError();
+ 
+document.querySelectorAll('.form-input, .rip-datetime-input').forEach(el => {
+ el.classList.remove('border-red-500');
+ if (el.classList.contains('form-input')) {
+ el.classList.add('border-soccer-border');
+ }
+ });
+
+ let isValid = true;
+ let fieldsToValidate = [];
+
+ if (editContext.module === 'promemoria') {
+ fieldsToValidate = [
+ { id: 'f_oggetto', label: 'Oggetto' },
+ { id: 'f_descrizione', label: 'Descrizione' },
+ { id: 'f_datascadenza', label: 'Data Scadenza' },
+ { id: 'f_dataoraavviso', label: 'Data e Ora Avviso' },
+ { id: 'f_esito', label: 'Esito' }
+ ];
+ } else if (editContext.module === 'utenti') {
+ fieldsToValidate = [
+ { id: 'u_nome', label: 'Nome e cognome' },
+ { id: 'u_ruolo', label: 'Ruolo' },
+ { id: 'u_email', label: 'Email' },
+ { id: 'u_ric_prom', label: 'Riceve Promemoria' },
+ { id: 'u_int_prom', label: 'Interagisce Promemoria' },
+ { id: 'u_ric_soc', label: 'Riceve Social' },
+ { id: 'u_int_soc', label: 'Interagisce Social' }
+ ];
+ } else if (editContext.module === 'pianificazione') {
+ fieldsToValidate = [
+ { id: 'p_giorno', label: 'Giorno di Avviso' },
+ { id: 'p_orario', label: 'Orario di Avviso' }
+ ];
+ } else if (editContext.module === 'social') {
+ fieldsToValidate = [
+ { id: 's_gara', label: 'Gara' },
+ { id: 's_datagara', label: 'Data Gara' },
+ { id: 's_oragara', label: 'Ora Gara' }
+ ];
+
+ const ripCheck = [
+ { sel: 's_enext', dt: 's_enext_dt' },
+ { sel: 's_econv', dt: 's_econv_dt' },
+ { sel: 's_ematch', dt: 's_ematch_dt' },
+ { sel: 's_estart', dt: 's_estart_dt' },
+ { sel: 's_efull', dt: 's_efull_dt' },
+ { sel: 's_eclass', dt: 's_eclass_dt' }
+ ];
+
+ ripCheck.forEach(item => {
+ const selEl = document.getElementById(item.sel);
+ if (selEl && selEl.value === 'RIPROGRAMMATO') {
+ fieldsToValidate.push({ id: item.dt, label: 'Data/Ora Riprogrammata' });
+ }
+ });
+ }
+
+ for (let f of fieldsToValidate) {
+ const inputEl = document.getElementById(f.id);
+ if (!inputEl || !inputEl.value.trim()) {
+ isValid = false;
+ if (inputEl) {
+ inputEl.classList.remove('border-soccer-border');
+ inputEl.classList.add('border-red-500');
+ }
+ }
+ }
+
+ if (!isValid) {
+ showValidationError("Tutti i campi obbligatori (compresa data/ora se RIPROGRAMMATO) devono essere compilati.");
+ return;
+ }
+
+ showLoading("Salvataggio in corso...");
+
+ let payload = {};
+ if (editContext.module === 'promemoria') {
+ const selEsito = document.getElementById('f_esito');
+ let esitoFinal = selEsito.value;
+ if (esitoFinal === 'APERTO') {
+ esitoFinal = '';
+ }
+
+ payload = {
+ Oggetto: document.getElementById('f_oggetto').value.trim(),
+ Descrizione: document.getElementById('f_descrizione').value.trim(),
+ DataScadenza: document.getElementById('f_datascadenza').value.trim(),
+ DataOraAvviso: document.getElementById('f_dataoraavviso').value.trim(),
+ Esito: esitoFinal,
+ TipoFrequenza: document.getElementById('f_frequenza').value.trim(),
+ OraFrequenza: document.getElementById('f_orafrequenza').value.trim(),
+ rowIndex: editContext.rowIndex
+ };
+ } else if (editContext.module === 'utenti') {
+ payload = {
+ Nome: document.getElementById('u_nome').value.trim(),
+ Ruolo: document.getElementById('u_ruolo').value.trim(),
+ Email: document.getElementById('u_email').value.trim(),
+ RicevePromemoria: document.getElementById('u_ric_prom').value.trim(),
+ InteragiscePromemoria: document.getElementById('u_int_prom').value.trim(),
+ RiceveSocial: document.getElementById('u_ric_soc').value.trim(),
+ InteragisceSocial: document.getElementById('u_int_soc').value.trim(),
+ rowIndex: editContext.rowIndex
+ };
+ } else if (editContext.module === 'pianificazione') {
+ let rawOrario = document.getElementById('p_orario').value.trim();
+ if (rawOrario) {
+ rawOrario = rawOrario.replace(/:/g, '.');
+ if ((rawOrario.match(/\./g) || []).length === 1) {
+ rawOrario += '.00';
+ }
+ }
+
+ payload = {
+ Giorno: document.getElementById('p_giorno').value.trim(),
+ Orario: rawOrario,
+ colIndex: editContext.colIndex
+ };
+ } else if (editContext.module === 'social') {
+ let rawOraGara = document.getElementById('s_oragara').value.trim();
+ if (rawOraGara) {
+ rawOraGara = rawOraGara.replace(/:/g, '.');
+ if ((rawOraGara.match(/\./g) || []).length === 1) {
+ rawOraGara += '.00';
+ }
+ }
+
+ const giornataVal = document.getElementById('s_giornata').value.trim();
+
+ payload = {
+ Giornata: giornataVal,
+ Gara: document.getElementById('s_gara').value.trim(),
+ DataGara: document.getElementById('s_datagara').value.trim(),
+ OraGara: rawOraGara,
+ EsitoNextMatch: resolveEsitoValue('s_enext', 's_enext_dt'),
+ EsitoConvocati: resolveEsitoValue('s_econv', 's_econv_dt'),
+ EsitoMatchDay: resolveEsitoValue('s_ematch', 's_ematch_dt'),
+ EsitoStartingXi: resolveEsitoValue('s_estart', 's_estart_dt'),
+ EsitoFullTime: resolveEsitoValue('s_efull', 's_efull_dt'),
+ EsitoClassifica: resolveEsitoValue('s_eclass', 's_eclass_dt'),
+ rowIndex: editContext.rowIndex
+ };
+ }
+
+ const bodyData = {
+ module: editContext.module,
+ action: editContext.mode,
+ payload: payload
+ };
+
+ try {
+ const response = await fetch(WEB_APP_URL, {
+ method: 'POST',
+ body: JSON.stringify(bodyData)
+ });
+ const res = await response.json();
+ if (res.status === 'success') {
+ closeModal();
+ await loadData(true);
+ } else {
+ hideLoading();
+ showValidationError("Errore durante il salvataggio: " + res.message);
+ }
+ } catch (err) {
+ hideLoading();
+ showValidationError("Errore di rete durante il salvataggio.");
+ }
+ }
+
+ function toInputDate(dStr) {
+ if (!dStr) return '';
+ const d = new Date(dStr);
+ return !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : '';
+ }
+
+ function toInputDatetime(dStr) {
+ if (!dStr) return '';
+ const d = new Date(dStr);
+ if (isNaN(d.getTime())) return '';
+ const pad = n => String(n).padStart(2, '0');
+ return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+ }
+
+ function toInputTime(tStr) {
+ if (!tStr) return '';
+ let str = String(tStr).trim();
+ if (str.includes('T')) {
+ const d = new Date(str);
+ if (!isNaN(d.getTime())) {
+ const pad = n => String(n).padStart(2, '0');
+ return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+ }
+ }
+ str = str.replace(/\./g, ':');
+ const parts = str.split(':');
+ if (parts.length >= 2) {
+ const pad = n => String(n).padStart(2, '0');
+ return `${pad(parts[0])}:${pad(parts[1])}`;
+ }
+ return '';
+ }
+
+ function formatDate(dateString) {
+ if (!dateString) return '';
+ const d = new Date(dateString);
+ return !isNaN(d.getTime()) ? d.toLocaleDateString('it-IT') : dateString;
+ }
+
+ function formatDateTime(dateString) {
+ if (!dateString) return '';
+ const d = new Date(dateString);
+ return !isNaN(d.getTime()) ? d.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : dateString;
+ }
+
+ function getStatusBadge(esito) {
+ const e = String(esito || "").trim();
+ switch(e) {
+ case 'CHIUSO': return 'bg-green-500/20 text-green-400 border border-green-500/30';
+ case 'RIPROGRAMMATO': return 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+ case 'NOTIFICATO': return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
+ default: return 'bg-slate-700 text-slate-300';
+ }
+ }
+
+ function getStatusColor(esito) {
+ const e = String(esito || "").trim().toUpperCase();
+ if (e === 'CHIUSO') return 'text-green-400';
+ if (e === 'NOTIFICATO') return 'text-blue-400';
+ if (e.startsWith('RIPROGRAMMATO')) return 'text-amber-400';
+ if (e === 'APERTO' || e === '') return 'text-slate-400';
+ return 'text-slate-300';
+ }
+
+ function filterData() { renderCurrentView(); }
+
+ initApp();
+ </script>
+</body>
+</html>
